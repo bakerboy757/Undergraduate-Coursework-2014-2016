@@ -20,7 +20,7 @@ namespace cop4530{
 
 		  /*returns true if every element in Stack a is smaller than
 		  corresponding elements of Statck b, i.e., if repeatedly invoking top()
-		  and pop() on both a and b will generate a sequence of elements a_i
+		  and pop() on both a an d b will generate a sequence of elements a_i
 		  from a and b_i from b, and for every i,  a_i = b_i, until a is empty.
 		  */
 		  template<typename T>
