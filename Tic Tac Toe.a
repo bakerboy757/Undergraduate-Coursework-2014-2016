@@ -1,0 +1,305 @@
+##################################################################
+#																 #
+#		Name: Tyler Kelly										 #	
+#		Class: CDA 3100											 #
+#	    Assignment: #6 (TIC TAC TOE)         					 #
+#  																 #
+##################################################################	
+	
+	.data
+	
+	initialPrompt: .asciiz "Tic Tac Toe\n\nPositions\n\n 1 | 2 | 3 \n---+---+---\n 4 | 5 | 6 \n---+---+---\n 7 | 8 | 9 \n\nWho Starts First?\n\n  0) Human O\n  1) Computer X\n\n "
+	newLine:       .asciiz "\n"
+	userPrompt:    .asciiz "\nInsert position: "
+	compPrompt:    .asciiz "\nComputer Position: "
+	userWin:	   .asciiz "\nYOU WIN!"
+	compWin:       .asciiz "\nYOU LOSE!"
+	draw:          .asciiz "\nDRAW!"
+	
+	#board pieces
+	bar:           .asciiz "|"
+	X:             .asciiz " X "
+	O:             .asciiz " O "
+	empty:         .asciiz "   "
+	line:	       .asciiz "\n---+---+---\n"
+	
+				   .align 2
+	board:         .word 0,0,0,0,0,0,0,0,0,0				#boards initial state(first element unused)
+
+	.text
+	.globl main
+	
+	main:
+		
+		#original prompt
+		li $v0, 4
+		la $a0, initialPrompt
+		syscall
+		
+		#take in user input for who will go first
+		li $v0, 5
+		syscall
+		
+		move $s5, $v0						#store that input in s5, will also be used to determine who is next at all times
+		
+		#newLineCharacter
+		li $v0, 4
+		la $a0, newLine
+		syscall
+		
+		li $s2, 0								#counter for main(used to determine state of game i.e is board full)
+		la $s0, board							#loading board address in s0 for future use (IMPORTANT)
+
+	NEXT:
+		#first check who is going to be first
+		beq $s5, 0, HUMANMOVE
+		beq $s5, 1, COMPMOVE
+		COMPMOVE:
+			#initialize counter
+			li $t1, 4        	#initialize offset to 4
+			li $s3, 0			#counter to see where in array we are	
+			
+			#need to place at next empty spot so traverse array and check for empty spots
+			COMPCHECKEMPTY:
+				add $t2, $t1, $s0
+				lw $t3, 0($t2)		#s4 holds value
+				addi $t1, $t1, 4 	#add 4 to offset
+				addi $s3, $s3, 1	#add to counter
+				bne $t3, 0, COMPCHECKEMPTY   #go to next element if not empty
+				
+				#display prompt for where comp will go
+				li $v0, 4
+				la $a0, compPrompt
+				syscall
+				move $t6, $s3
+				li $v0, 1
+				move $a0, $t6
+				syscall
+				li $v0, 4
+				la $a0, newLine
+				syscall
+				
+				j VALID
+
+		HUMANMOVE:
+			
+			#prompt user for position to enter O
+			li $v0, 4
+			la $a0, userPrompt
+			syscall
+			
+			#take in value from user and store as userEntry
+			li $v0, 5
+			syscall
+			move $s3, $v0			#user entry savesd as s3
+			
+			#ask question again if entry is invalid (>10)
+			bgt $s3, 9, HUMANMOVE
+			blt $s3, 1, HUMANMOVE
+			
+			USERCHECKEMPTY:
+			
+				move $t2, $s3			#put the index into t2
+				add $t2, $t2, $t2       #double the index
+				add $t2, $t2, $t2       #double index again = 4x
+				add $t1, $t2, $s0       #combine two elements of the address
+				lw $t4, 0($t1)			#value of array held in t4
+				
+				bne $t4, 0, HUMANMOVE   #ask user to enter another value
+		
+				j VALID					#valid entry go back to where we were
+	
+		VALID:
+			#store at valid index
+			add $s2, $s2, 1			#add 1 to counter
+			move $t2, $s3		    #put the index into t2
+			add $t2, $t2, $t2       #double the index
+			add $t2, $t2, $t2       #double index again = 4x
+			add $s1, $s0, $t2       #combine two elements of the address
+			beq $s5, 0, WASHUMAN
+			beq $s5, 1, WASCOMP
+			WASHUMAN:
+				li $t6, 1				#user selection will show up in array as 1
+				sw $t6, 0($s1)			#store value into array cell
+				li $s5, 1				#get ready to change player
+				j DISPLAY
+			WASCOMP:
+				li $t6, -1				#user selection will show up in array as 1
+				sw $t6, 0($s1)			#store value into array cell
+				li $s5, 0				#get ready to change player
+				j DISPLAY	
+										
+		CHECKWIN:
+			CHECKROWWIN:
+				li $t0, 0				#sum of rows initialized
+				#store row values in temps
+				lw $t1, 4($s0)			
+				lw $t2, 8($s0)
+				lw $t3, 12($s0)	
+				
+				#add up rows, if = 3 then user win if -3 comp win
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+				
+				lw $t1, 16($s0)
+				lw $t2, 20($s0)
+				lw $t3, 24($s0)
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+				
+				lw $t1, 28($s0)
+				lw $t2, 32($s0)
+				lw $t3, 36($s0)
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+			CHECKCOLUMNWIN:
+				li $t0, 0				#sum of columns initialized
+				#store column values in temps
+				lw $t1, 4($s0)			
+				lw $t2, 16($s0)
+				lw $t3, 28($s0)
+				#add up columns, if = 3 then user win if -3 comp win
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+				
+				lw $t1, 8($s0)
+				lw $t2, 20($s0)
+				lw $t3, 32($s0)
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+				
+				lw $t1, 12($s0)
+				lw $t2, 24($s0)
+				lw $t3, 36($s0)
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+			CHECKDIAGWIN:
+				li $t0, 0				#sum of diag initialized
+				#store diag values in temps
+				lw $t1, 4($s0)			
+				lw $t2, 20($s0)
+				lw $t3, 36($s0)
+				#add up diag, if = 3 then user win if -3 comp win
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+				
+				lw $t1, 12($s0)
+				lw $t2, 20($s0)
+				lw $t3, 28($s0)
+				add $t0, $t1, $t2
+				add $t0, $t0, $t3
+				beq $t0, 3, USERWIN
+				beq $t0, -3, COMPWIN
+				
+				j CHECKDRAW
+				
+			CHECKDRAW:
+				blt $s2, 9, NEXT 
+				j ISDRAW
+				
+					
+		DISPLAY:			
+			li $t6, 0				#counter initialized
+			li $t8, 4				#initial offset to be 4(start array at index 1) solved issue with printing(temps not over calls)
+			#need to traverse array
+			START:
+				
+				add $s1, $t8, $s0	#adding offset to our initial memory location of board
+				lw $t5, 0($s1)		#store what is at location into t5 
+				
+				addi $t8, $t8, 4    #add 4 to offset
+				addi $t6, $t6, 1	#add one to counter
+				
+				#where to branch to
+				beq $t5, 0, BLANK	#if t5 is 0 then go place a blank
+				beq $t5, 1, OSPOT   
+				beq $t5, -1, XSPOT
+				#follow same pattern
+			BLANK:
+				li $v0, 4
+				la $a0, empty
+				syscall
+				
+				#branching instructions for printing line and end of boad characters
+				beq $t6, 3, LINE
+				beq $t6, 6, LINE
+				beq $t6, 9, ENDDISPLAY
+				
+				#otherwise lets print a bar
+				li $v0, 4
+				la $a0, bar
+				syscall
+				blt $t6, 9, START	#keep printing components of board until youve printed 9
+				j NEXT
+			OSPOT:
+				li $v0, 4
+				la $a0, O
+				syscall
+				beq $t6, 3, LINE
+				beq $t6, 6, LINE
+				beq $t6, 9, ENDDISPLAY
+				#otherwise lets print a bar
+				li $v0, 4
+				la $a0, bar
+				syscall
+				blt $t6, 9, START
+				j NEXT
+			XSPOT:
+				li $v0, 4
+				la $a0, X
+				syscall
+				beq $t6, 3, LINE
+				beq $t6, 6, LINE
+				beq $t6, 9, ENDDISPLAY
+				#otherwise lets print a bar
+				li $v0, 4
+				la $a0, bar
+				syscall
+				blt $t6, 9, START
+				j NEXT
+			LINE:
+				li $v0, 4 
+				la $a0, line
+				syscall
+				blt $t6, 9, START
+				j NEXT
+			ENDDISPLAY:
+				li $v0, 4
+				la $a0, newLine
+				syscall
+				#after finsihed printing board, go and check if the anyone won
+				j CHECKWIN
+		#states of the final game:
+		USERWIN:
+			li $v0, 4
+			la $a0, userWin
+			syscall
+			j EXIT
+		COMPWIN:
+			li $v0, 4
+			la $a0, compWin
+			syscall
+			j EXIT
+		ISDRAW:
+			li $v0, 4
+			la $a0, draw
+			syscall
+			j EXIT
+
+		EXIT:
+			jr $ra
+		
