@@ -1,0 +1,115 @@
+******************* Grades test 1 *******************
+Enter as many grades as you like (non-negative numbers)
+  Then enter a negative value to indicate you are finished
+>
+96	73	68	94
+76	77	100	89
+54	82	63	85
+You entered 12 grades
+Class average = 79.75
+******************* Grades test 2 *******************
+Enter as many grades as you like (non-negative numbers)
+  Then enter a negative value to indicate you are finished
+>
+98	84	92	63
+69	42	78	89
+82	81	75	99
+91	50	71	73
+81	101	83	91
+91	95	89	87
+86	74	78	92
+You entered 28 grades
+Class average = 81.6071
+******************* diff test 1 *******************
+1c1
+< To be, or not to be: that is the question:
+---
+> To be, or not to be:  that is the question:
+5c5
+< And by opposing end them? To die: to sleep;
+---
+> And by opposing end them?   To die: to sleep;
+7c7
+< The heart-ache and the thousand natural shocks
+---
+> The heart - ache and the thousand natural shocks
+13c13
+< Must give us pause: there's the respect
+---
+> Must give us pause: There's the respect
+21c21
+< With a bare bodkin? who would fardels bear,
+---
+> With a bare bodkin? Who would fardels bear,
+33,35c33
+< And lose the name of action. - Soft you now!
+< The fair Ophelia! Nymph, in thy orisons
+< Be all my sins remember'd.
+---
+> And lose the name of action.
+******************* diff test 2 *******************
+13c13
+< Must give us pause: there's the respect
+---
+> Must give us pause: There's the respect
+21c21
+< With a bare bodkin? who would fardels bear,
+---
+> With a bare bodkin? Who would fardels bear,
+33,35c33
+< And lose the name of action. - Soft you now!
+< The fair Ophelia! Nymph, in thy orisons
+< Be all my sins remember'd.
+---
+> And lose the name of action.
+******************* diff test 3 *******************
+33,35c33
+< And lose the name of action. - Soft you now!
+< The fair Ophelia! Nymph, in thy orisons
+< Be all my sins remember'd.
+---
+> And lose the name of action.
+******************* grep test 1 *******************
+1:To be, or not to be: that is the question:
+2:Whether 'tis nobler in the mind to suffer
+3:The slings and arrows of outrageous fortune,
+5:And by opposing end them? To die: to sleep;
+7:The heart-ache and the thousand natural shocks
+10:To sleep: perchance to dream: ay, there's the rub;
+13:Must give us pause: there's the respect
+15:For who would bear the whips and scorns of time,
+16:The oppressor's wrong, the proud man's contumely,
+17:The pangs of despised love, the law's delay,
+18:The insolence of office and the spurns
+19:That patient merit of the unworthy takes,
+23:But that the dread of something after death,
+24:The undiscover'd country from whose bourn
+25:No traveller returns, puzzles the will
+26:And makes us rather bear those ills we have
+27:Than fly to others that we know not of?
+29:And thus the native hue of resolution
+30:Is sicklied o'er with the pale cast of thought,
+32:With this regard their currents turn awry,
+33:And lose the name of action. - Soft you now!
+34:The fair Ophelia! Nymph, in thy orisons
+******************* grep test 2 *******************
+3:The slings and arrows of outrageous fortune,
+7:The heart-ache and the thousand natural shocks
+16:The oppressor's wrong, the proud man's contumely,
+17:The pangs of despised love, the law's delay,
+18:The insolence of office and the spurns
+24:The undiscover'd country from whose bourn
+34:The fair Ophelia! Nymph, in thy orisons
+******************* grep test 3 *******************
+15:For who would bear the whips and scorns of time,
+21:With a bare bodkin? who would fardels bear,
+******************* Directory listing  *******************
+total 68
+-rw------- 1 tkelly CS-Majors  1677 Mar 24 23:44 assignment3.sh
+-rw-r--r-- 1 tkelly CS-Majors  1491 Mar 24 23:44 file1
+-rw-r--r-- 1 tkelly CS-Majors  1413 Mar 24 23:44 file2
+-rwx------ 1 tkelly CS-Majors  9721 Mar 24 23:44 grades
+-rw------- 1 tkelly CS-Majors 30974 Mar 24 23:44 myprocess.txt
+-rw------- 1 tkelly CS-Majors  3560 Mar 24 23:44 output.txt
+-rw------- 1 tkelly CS-Majors    40 Mar 24 23:44 t1
+-rw------- 1 tkelly CS-Majors    89 Mar 24 23:44 t2
