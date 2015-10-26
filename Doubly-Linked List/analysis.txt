@@ -1,0 +1,19 @@
+Function in question: void List<T>::reverse()
+
+Will refer to as "reverse()" from now on
+
+reverse() contents:
+
+    for (Node* temp = head; temp != nullptr; temp = temp->prev) {
+        std::swap(temp->next, temp->prev);
+    }
+    std::swap(head, tail);
+
+
+This function must iterate over every node in the list and swap its adjacent nodes
+The complexity is n + 1 or n
+
+In Big O notation we have:
+
+   O(n)
+
