@@ -1,138 +1,101 @@
-#include "Stack.h"
+#include "stack.h"
 
 //zero argument constructor
 template<typename T>
-Stack<T>::Stack() :stackPtr{nullptr} {
-	
+stack<T>::stack() {
+    
 
 }
 //destructor
 template<typename T>
-Stack<T>::~Stack(){
-	clear();
-	delete stackPtr;
+stack<T>::~stack(){
+    v.clear();
 
 }    
 //copy constructor
 template<typename T>
-Stack<T>::Stack(const Stack<T>& rhs){
-	theSize = 0;
-	stackPtr = new Item;
-	Item * p = rhs.stackPtr;
-	Stack temp;
-	while (p->prev != nullptr) {
-		temp.push(p->data);
-		p = p->prev;
-	}
-	p = temp.stackPtr;
-	while (p != nullptr) {
-		push(p->data);
-		p = p->prev;
-	}
-
+stack<T>::stack(const stack<T>& rhs){
+    v = rhs.v;
 }
 //move constructor
 template<typename T>
-Stack<T>::Stack(Stack<T>&& rhs) : theSize{ rhs.theSize }, stackPtr{rhs.stackPtr} {
-	rhs.theSize = 0;
-	rhs.stackPtr = nullptr;
-
-
+stack<T>::stack(stack<T>&& rhs) {
+    v = rhs.v;
+    rhs.v.clear();
 }
 template<typename T>
-Stack<T>& Stack<T>::operator= (const Stack <T>& rhs){
-	Stack copy = rhs;
-	std::swap(*this, copy);
-	return *this;
-
+stack<T>& stack<T>::operator= (const stack <T>& rhs){
+    stack copy = rhs;
+    std::swap(*this, copy);
+    return *this;
 
 }  
 template<typename T>
-Stack<T>& Stack<T>::operator=(Stack<T> && rhs){
-	std::swap(theSize, rhs.theSize);
-	std::swap(stackPtr, rhs.stackPtr);
+stack<T>& stack<T>::operator=(stack<T> && rhs){
+    std::swap(v, rhs.v);
 
-	return *this;
+    return *this;
 
 }
 //returns true if the stack contains no elements
 template<typename T>
-bool Stack<T>::empty() const{
-	return size() == 0;
+bool stack<T>::empty() const{
+    return v.size() == 0;
 
 }
 //delete all elements from the stack
 template<typename T>
-void Stack<T>::clear(){
-	while (!empty())
-		pop();
+void stack<T>::clear(){
+    while (!empty())
+        pop();
 
 
 }
 //adds x to the stack copy version
 template<typename T>
-void Stack<T>::push(const T& x){
-	Item* p = stackPtr;
-	++theSize;
-	stackPtr = new Item{ x };
-	stackPtr->prev = p;
+void stack<T>::push(const T& x){
+    v.push_back(x);
 
 }
 //adds x to the stack move version
 template<typename T>         
-void Stack<T>::push(const T&& x){
-	Item* p = stackPtr;
-	++theSize;
-	stackPtr = new Item{ std::move(x) };
-	stackPtr->prev = p;
-	
+void stack<T>::push(const T&& x){
+    v.push_back(std::move(x));
+    
 }
 //removes and discards the most recently added element of the stack
 template<typename T>
-void Stack<T>::pop(){
-	Item* p = stackPtr;
-	stackPtr = p->prev;
-	delete p;
-	--theSize;
-
+void stack<T>::pop(){
+    v.pop_back();
 }
 //mutator that returns a reference to the most recently added element of the stack
 template<typename T>
-T& Stack<T>::top(){
-	return stackPtr->data;
+T& stack<T>::top(){
+    return v[v.size() - 1];
 
 }
 //accessor that returns the most recently added element of the stack
 template<typename T>
-const T& Stack<T>::top() const{
-	return stackPtr->data;
+const T& stack<T>::top() const{
+    return v[v.size() - 1];
 
 }
 //returns the number of elements stored in stack
 template<typename T>         
-int Stack<T>::size() const{
-	return theSize;
+int stack<T>::size() const{
+    return v.size();
 
 }
-/*print elements of Stack to ostream os. ofc is the separator 
+/*print elements of stack to ostream os. ofc is the separator 
 between elements in the stack when they are printed out. Note that 
-print() prints elements in the opposite order of the Stack (that is, the 
+print() prints elements in the opposite order of the stack (that is, the 
 oldest element should be printed first).*/ 
 template<typename T>
-void Stack<T>::print(std::ostream& os, char ofc = ' ') const{
-	//gonna put stack into another stack by counting down stack
-	Item * p = stackPtr;
-	Stack temp;
-	while (p != nullptr) {
-		temp.push(p->data);
-		p = p->prev;
-	}
-	//then I'm going to count down stack which is basically counting up opriginal stack
-	p = temp.stackPtr;
-	while (p != nullptr) {
-		os << p->data << ofc;
-		p = p->prev;
-	}
+void stack<T>::print(std::ostream& os, char ofc) const{
+
+    for (unsigned int i = 0; i < v.size(); i++) {
+        os << v[i] << ofc;
+    }
 
 
 }
@@ -140,56 +103,58 @@ void Stack<T>::print(std::ostream& os, char ofc = ' ') const{
 
 //overloaded comparison opertors
 
-// invokes the print() method to print the Stack<T> a in the specified ostream    
+// invokes the print() method to print the stack<T> a in the specified ostream    
 template<typename T>
-std::ostream & cop4530::operator<<(std::ostream & os, const Stack<T>& a)
+std::ostream & operator<<(std::ostream & os, const stack<T>& a)
 {
-	a.print(os);
-	return os;
+    a.print(os);
+    return os;
 
 }
 
-//returns true if the two compared Stacks have the same elements, in the same order.  
+//returns true if the two compared stacks have the same elements, in the same order.  
 template<typename T>
-bool cop4530::operator==(const Stack<T>& lhs, const Stack<T>& rhs)
+bool operator==(const stack<T>& lhs, const stack<T>& rhs)
 {
-	if (lhs.size() != rhs.size()) return false;
-	auto lhs_p = lhs.stackPtr;
-	auto rhs_p = rhs.stackPtr;
-	while (lhs_p->prev != nullptr) {
-		if (lhs_p->data != rhs_p->data) return false;
-		lhs_p = lhs_p->prev;
-		rhs_p = rhs_p->prev;
-	}
-	return true;
+    stack<T> copy_lhs = lhs;
+    stack<T> copy_rhs = rhs;
+    if (copy_lhs.size() != copy_rhs.size()) return false;
+    while (!copy_lhs.empty()) {
+        if (copy_lhs.top() != copy_rhs.top())
+            return false;
+        copy_lhs.pop();
+        copy_rhs.pop();
+    }
+    return true;
 
 }
 // opposite of operator==()
 template<typename T>
-bool cop4530::operator!=(const Stack<T>& lhs, const Stack<T>& rhs)
+bool operator!=(const stack<T>& lhs, const stack<T>& rhs)
 {
-	return !(lhs == rhs);
+    return !(lhs == rhs);
 
 }
-/*returns true if every element in Stack a is smaller than 
+/*returns true if every element in stack a is smaller than 
   corresponding elements of Statck b, i.e., if repeatedly invoking top() 
   and pop() on both a and b will generate a sequence of elements a_i 
   from a and b_i from b, and for every i,  a_i = b_i, until a is empty.  
 */
 template<typename T>
-bool cop4530::operator<=(const Stack<T>& a, const Stack<T>& b)
+bool operator<=(const stack<T>& a, const stack<T>& b)
 {
-	if (a == b)
-		return true;
-	//need to check and see what is required for when a and b are not of same size
-	auto a_p = a.stackPtr;
-	auto b_p = b.stackPtr;
-	while (a_p->prev != nullptr && b_p->prev != nullptr) {
-		if (a_p->data > b_p->data) return false;
-		a_p = a_p->prev;
-		b_p = b_p->prev;
-	}
-	return true;
+    stack<T> copy_a = a;
+    stack<T> copy_b = b;
+    while (!copy_a.empty()) {
+        if (copy_a.top() != copy_b.top()) {
+            if (copy_a.top() > copy_b.top())
+                return false;
+        }
+        copy_a.pop();
+        copy_b.pop();
+        
+    }
+    return true;
 
 }
 
