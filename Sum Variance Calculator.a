@@ -1,0 +1,180 @@
+##################################################################
+#																 #
+#		Name: Tyler Kelly										 #	
+#		Class: CDA 3100											 #
+#	    Assignment: #5 (Determine the sum, min, max, 			 #
+#					mean, and variance)      					 #
+#  																 #
+##################################################################	
+		
+	.data
+_prompt:
+		.asciiz "Enter integer values, one per \nline, terminated by a negative \nvalue.\n"
+_Sum:
+		.asciiz "     Sum is: "
+_Min:
+		.asciiz "     Min is: "
+_Max:   
+		.asciiz "     Max is: "
+_Mean:
+		.asciiz "    Mean is: "
+_Variance:
+		.asciiz "Variance is: "
+_newLine:
+		.asciiz "\n"
+mean:
+	.float 0.0
+.align 2
+_array: 
+		.space 400
+	.text
+	.globl main
+	
+main:
+	li $v0,4						#load space for string
+	la $a0, _prompt					#load message
+	syscall
+	
+	li $t2, 0						#counter is $t2
+	li $t3, 0						#setting user entered variable to 0 for first run
+	li $t4, 0						#set min to zero
+	li $t5, 0						#set max to zero
+	la $s0, _array					#load base address of array into register $s0
+	li $t9, 0						#current offset of our array is 0
+	
+	
+	
+	LOOP:
+		
+		li $v0, 5					#going to load in a int from user
+		syscall
+		
+		#array stuff
+		add $s1, $s0, $t9			#add our offset to our initial mempry location
+		sw $v0,0($s1)				#store our number in the offset location
+		addi $t9, $t9, 4			#add 4 to our offset
+		
+		add $t3, $t3, $t1			#adds up sum
+		
+		#need to check if negative
+		move $t1, $v0				#moving user int to $t1	
+		blt $t1, $zero, EXIT		#checks if number less than zero, branch if so
+				
+		add $t2, $t2, 1				#add 1 to counter
+		
+		beq $t2, 1, INITMIN			#if first run through, then set min to first num entered
+		
+		MINFUNC:
+			blt $t1, $t4, MIN		#if num entered is lower than previous low, set to min
+		MAXFUNC:
+			bgt $t1, $t5, MAX		#if num is greater than previous max, go to MAX
+		BACKTOLOOP:
+			j LOOP					#start at loop beginning
+		
+	INITMIN:
+		move $t4, $t1				#set min to initial num
+		j MINFUNC					#jump back to where we left off
+	MIN:
+		move $t4, $t1				#set min to new num
+		j MAXFUNC					#continue where we left off
+	MAX:
+		move $t5, $t1				#set max to new num
+		j BACKTOLOOP				#continue where we left off
+		
+	
+	EXIT:
+		
+		#print out sum
+		li $v0, 4
+		la $a0, _Sum
+		syscall
+		li $v0, 1
+		move $a0, $t3
+		syscall
+		li $v0, 4
+		la $a0, _newLine
+		syscall
+		
+		#print out min
+		li $v0, 4
+		la $a0, _Min
+		syscall
+		li $v0, 1
+		move $a0, $t4
+		syscall
+		li $v0, 4
+		la $a0, _newLine
+		syscall
+		
+		#print out max
+		li $v0, 4
+		la $a0, _Max
+		syscall
+		li $v0, 1
+		move $a0, $t5
+		syscall
+		li $v0, 4
+		la $a0, _newLine
+		syscall
+		
+		#print out mean
+		li $v0, 4
+		la $a0, _Mean
+		syscall
+		
+		mtc1 $t2, $f1				#move temp count to float register
+		cvt.s.w $f3, $f1			#convert int to float
+		mtc1 $t3, $f2				#move temp sum to float register
+		cvt.s.w $f4, $f2			#convert int to float
+		li $v0, 2					#load space for float
+		div.s $f12, $f4, $f3		#divide to floats, automatically prints right result
+		syscall
+		li $v0, 4
+		la $a0, _newLine
+		syscall
+		
+		#initialize variables
+		li $t6, 0					#set initial offset to 0
+		li $t8, 0					#set count to zero
+		li.s $f10, 0.0				#set sum of difference of squares to 0.0
+		
+	DEVIATION:
+		add $s1, $s0, $t6			#add our offset to our initial memory location
+		
+		lw $t7, 0($s1)				#store number at our memory address + offset
+		mtc1 $t7, $f6				#move temp num to float register
+		cvt.s.w $f7, $f6			#convert int to float
+		
+		div.s $f5, $f4, $f3			#use old mean value
+		s.s $f5, mean				#store old mean value
+
+		sub.s $f8, $f7, $f5			#subtract mean from the current number
+		mul.s $f9, $f8, $f8			#square the difference
+		
+		add.s $f10, $f10, $f9		#sum up the squares
+	
+		addi $t6, $t6, 4			#add four to our offset
+		addi $t8, $t8, 1			#add one to counter
+		
+		beq $t8, $t2, EXIT_Variance			#if counter equal to total number of elements exit
+	
+		j DEVIATION
+		
+	EXIT_Variance:
+		#print out variance
+		li $v0, 4
+		la $a0, _Variance
+		syscall
+		
+		mtc1 $t2, $f2				#move temp num of elements to float register
+		cvt.s.w $f4, $f2			#convert int to float
+		li $v0, 2					#load space for float
+		div.s $f12, $f10, $f4		#divide two floats, sum of squares over tot numbers, automatically prints right result
+		syscall
+		li $v0, 4
+		la $a0, _newLine
+		syscall
+		jr $ra
+	
+	
+	

@@ -1,0 +1,183 @@
+##################################################################
+#																 #
+#		Name: Tyler Kelly										 #	
+#		Class: CDA 3100											 #
+#	    Assignment: #4 Read in two numbers and find				 #
+#					sum, difference, product,					 #
+#					quotient/remainder 							 #
+#																 #
+#  																 #
+##################################################################	
+		
+		.data
+_msg:	
+		.asciiz "Tyler Kelly, Senior\nAdd, Subtract, Multiply, and Divide two numbers\n"
+_firstNum:
+		.asciiz "Enter the first number: "
+_secondNum:
+		.asciiz "Enter the second number: "
+_plus:
+		.asciiz " + "
+_minus:
+		.asciiz " - "
+_times: 
+		.asciiz " * "
+_divide:
+		.asciiz " / "
+_equals:
+		.asciiz "="
+_rem:
+		.asciiz " rem "
+_n:
+		.asciiz "\n"
+_warning:
+		.asciiz "***WARNING! Number is less than 1!***"
+_end:
+		.asciiz "Program has stopped expectedly!"
+
+		
+		.text
+		.globl main
+main:		
+		#print message
+		li $v0,4					#tell computer we are going to load a string
+		la $a0,_msg					#load the message
+		syscall
+		
+		#print prompt for user
+		li $v0,4					#load space for string
+		la $a0,_firstNum			#load first prompt
+		syscall
+		
+		#take in input
+		la $v0, 5					#tell comp we are loading in a integer, number stored in v0
+		syscall
+		
+		move $t0, $v0				#store result in t0
+		ble	$t0,$zero,_exit			#checks if number is less than 1
+	
+		li $v0,4					#load space for string
+		la $a0,_secondNum			#load second prompt
+		syscall
+		
+		li $v0, 5					#going to enter a int		
+		syscall
+		
+		move $t1, $v0				#put v0 in t1
+		ble $t1,$zero,_exit			#check if less than 1
+		
+		
+		#arithmetic
+		addu $t2,$t1,$t0			#adds numbers and stores as t2
+		
+		sub $t3,$t0,$t1				#subtracts and stores as t3
+		
+		mul $t4,$t0,$t1				#multiplies and stores as t4
+		
+		divu $t0,$t1				#divides
+		mflo $t5					#stores lo(result) as t5
+		mfhi $t6					#stores high(remainder) as t6
+		
+		#show addition
+		li $v0, 1					#makes space for int print out
+		move $a0, $t0				#loads first number
+		syscall
+		li $v0, 4					#make space for plus sign
+		la $a0, _plus				#load plus sign
+		syscall
+		li $v0, 1					#load space for int
+		move $a0,$t1				#load second number
+		syscall
+		li $v0, 4					#load space for equals
+		la $a0, _equals				#load equals
+		syscall
+		li $v0, 1					#load space for result
+		move $a0, $t2				#load sum
+		syscall
+		li $v0, 4					#make space for new line
+		la $a0, _n					#load new line
+		syscall
+		
+		#show subtraction
+		li $v0, 1					#makes space for int print out
+		move $a0, $t0				#loads first number
+		syscall
+		li $v0, 4					#make space for minus sign
+		la $a0, _minus				#load minus sign
+		syscall
+		li $v0, 1					#load space for int
+		move $a0,$t1				#load second number
+		syscall
+		li $v0, 4					#load space for equals
+		la $a0, _equals				#load equals
+		syscall
+		li $v0, 1					#load space for result
+		move $a0, $t3				#load difference
+		syscall
+		li $v0, 4					#make space for new line
+		la $a0, _n					#load new line
+		syscall
+		
+		#show multiplication
+		li $v0, 1					#makes space for int print out
+		move $a0, $t0				#loads first number
+		syscall
+		li $v0, 4					#make space for mult sign
+		la $a0, _times				#load mult sign
+		syscall
+		li $v0, 1					#load space for int
+		move $a0,$t1				#load second number
+		syscall
+		li $v0, 4					#load space for equals
+		la $a0, _equals				#load equals
+		syscall
+		li $v0, 1					#load space for result
+		move $a0, $t4				#load result
+		syscall
+		li $v0, 4					#make space for new line
+		la $a0, _n					#load new line
+		syscall
+		
+		#show division
+		li $v0, 1					#makes space for int print out
+		move $a0, $t0				#loads first number
+		syscall
+		li $v0, 4					#make space for division sign
+		la $a0, _divide				#load division sign
+		syscall
+		li $v0, 1					#load space for int
+		move $a0,$t1				#load second number
+		syscall
+		li $v0, 4					#load space for equals
+		la $a0, _equals				#load equals
+		syscall
+		li $v0, 1					#load space for result
+		move $a0, $t5				#load quotient
+		syscall
+		li $v0, 4					#load space for rem
+		la $a0, _rem				#load remainder
+		syscall
+		li $v0, 1					#load space for remainder
+		move $a0, $t6				#load remainder value
+		syscall
+		li $v0, 4					#make space for new line
+		la $a0, _n					#load new line
+		syscall
+		
+		
+		li $v0, 4					#make space for end message
+		la $a0, _end				#load message
+		syscall
+		
+		
+		jr $ra
+		
+	_exit:
+		li $v0,4					#loads space for error
+		la $a0, _warning			#loads error mess
+		syscall
+		
+		jr $ra		
+		
+	
+		
