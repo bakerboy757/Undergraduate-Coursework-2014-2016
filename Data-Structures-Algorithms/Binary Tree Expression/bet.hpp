@@ -1,5 +1,11 @@
 #include "bet.h"
 //default
+/*
+	TODO:
+		need to fix error checking(to strict)
+
+
+*/
 BET::BET() :root{nullptr} {
     theSize = 0;
     leafs = 0;
@@ -31,11 +37,11 @@ BET::BET(const string postfix) {
             s.push(temp);
         }
         else {
-            if (s.size() != 2) {
+          /*  if (s.size() != 2) {
                 isValid = false;
                 cout << "Wrong postfix expression" << endl;
                 break;
-            }
+            }*/
             BinaryNode *temp = new BinaryNode;
             temp->element = v[i];
             temp->right = s.top();
@@ -194,7 +200,8 @@ size_t BET::leaf_nodes(BinaryNode *t) {
     if (t->left == nullptr && t->right == nullptr) return 1;
     return leaf_nodes(t->left) + leaf_nodes(t->right);
 }
-int precedence(string op) {
+int BET::precedence(string op)
+{
     switch (op[0]) {
     case '+':
     case '-':

@@ -9,7 +9,7 @@
 using namespace std;
 //template<typename T>
 class BET {
-    friend int precedence(string op);
+
 private:
     struct BinaryNode {
         string element;
@@ -49,7 +49,9 @@ public:
     size_t leaf_nodes();
     //return true if the tree is empty. Return false otherwise
     bool empty();
+	int precedence(string op);
     //all private must be implemented Recursively
+
 private:
     //print to the standard output the corresponding infix expression. Note that you may need to add 
     //parentheses depending on the precedence of operators. You should not have unnecessary parentheses.
