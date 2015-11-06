@@ -19,10 +19,7 @@ BET::BET() :root{nullptr} {
 //The tree should be built based on the postfix expression. Tokens in the postfix expression are separated by space.
 BET::BET(const string postfix) {
     bool isValid = true;
-    if (postfix == "") {
-        cout << "Wrong postfix expression" << endl;
-        isValid = false;
-    }
+    if (postfix == "") isValid = false;
     stack<BinaryNode*> s;
     vector<string> v;
     istringstream iss(postfix);
@@ -37,11 +34,10 @@ BET::BET(const string postfix) {
             s.push(temp);
         }
         else {
-          /*  if (s.size() != 2) {
+           if (s.size() < 2) {
                 isValid = false;
-                cout << "Wrong postfix expression" << endl;
                 break;
-            }*/
+            }
             BinaryNode *temp = new BinaryNode;
             temp->element = v[i];
             temp->right = s.top();
@@ -52,8 +48,13 @@ BET::BET(const string postfix) {
         }
     
     }
+	if (s.size() > 1) isValid = false;
     if (isValid) this->root = s.top();
-    else this->root = nullptr;
+	else { 
+		this->root = nullptr; 
+		cout << "Wrong postfix expression" << endl;
+	
+	}
 
 }
 //copy construct
@@ -80,7 +81,7 @@ bool BET::buildFromPostfix(const string postfix) {
 //assignment operator
 const BET & BET::operator= (const BET & rhs) {
     BET copy = rhs;
-    std::swap(root, copy.root);
+    root = clone(copy.root);
     return *this;
         
 }
