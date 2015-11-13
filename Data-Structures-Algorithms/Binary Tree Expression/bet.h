@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iostream>
 using namespace std;
-//template<typename T>
+
 class BET {
 
 private:
@@ -73,6 +73,5 @@ private:
     
     
 };
-#include "bet.hpp"
 
 #endif
