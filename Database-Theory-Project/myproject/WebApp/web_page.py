@@ -192,6 +192,14 @@ def employerHome():
 @app.route('/Employer/EditLogo')
 def employerEditLogo():
     return 'employer'
+	
+@app.route('/Employer/EditInternships', methods=['GET', 'POST'])
+def employerEditInt():
+	error = None
+	if request.method == 'POST':
+		flag = editJob(request.form['job_id'])
+		
+	return render_template('editInternship.html', error=error)
 
 @app.route('/Employer/AddInternships', methods=['GET', 'POST'])
 def employerAddInt():
@@ -215,10 +223,10 @@ def employerAddInt():
 	
 def addInt(type, description, cid):
 	adb.add_job(type, description, cid)
+	
+def editJob(job_id):
+	adb.editJob(job_id)
 
-@app.route('/Employer/EditInternships')
-def employerEditInt():
-    return 'employer'
 
 def get_db():
     db = getattr(g, '_database', None)

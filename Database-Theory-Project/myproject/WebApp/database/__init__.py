@@ -127,6 +127,16 @@ def company_login(name, password):
             return True
         else:
             return False
+def editJob(job_id):
+	conn = sqlite3.connect(DBNAME)
+	c = conn.cursor()
+
+	c.execute("DELETE FROM Job WHERE jobid = "+job_id+"")
+	print "removed"+job_id
+
+	conn.commit()
+	conn.close()
+
 
 def add_student(name, password):
     """creates unique id for each student, and adds student to the
