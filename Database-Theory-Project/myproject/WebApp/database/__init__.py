@@ -76,25 +76,38 @@ def add_job(type, description, name):
     conn.commit()
     conn.close()
 	
-def add_resume(filename, stuname):
+def add_resume(filename, fsuid):
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
 
-    c.execute ('SELECT sid FROM {} WHERE name = ?'.format(STUDENTTNAME), (stuname,))
-    sid = c.fetchone()
+    # c.execute ('SELECT fsuid FROM {} WHERE name = ?'.format(STUDENTTNAME), (stuname,))
+    # sid = c.fetchone()
 
     c.execute('SELECT resumeid FROM Resume')
 
     ctnum = len(c.fetchall())
 
     date = time.strftime("%x")
-    print filename
+    
 
-    c.execute("INSERT OR REPLACE INTO Resume values (?, ?, ?, ?)", (ctnum, filename, sid[0], date))
+
+    c.execute("INSERT OR REPLACE INTO Resume values ((SELECT resumeid from Resume WHERE fsuid = ?), ?, ?, ?)", (fsuid, filename, fsuid, date))
 
     conn.commit()
     conn.close()
+def view_students():
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
 
+    c.execute('SELECT name, Students.fsuid, filename, date FROM Students, Resume WHERE Students.fsuid = Resume.fsuid')
+
+    
+    rows = c.fetchall()
+    print rows
+    
+    conn.commit()
+    conn.close()
+    return rows
 def view_jobs():
 	conn = sqlite3.connect(DBNAME)
 	c = conn.cursor()

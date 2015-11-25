@@ -65,12 +65,13 @@ def studentUpload():
     #how to add to resume table, add filename?
     if request.method == 'POST':
         f = request.files['resume']
-        location = "Resumes/"+session['username']+"Resume.doc"
+        location = "Resumes/"+session['username']+"_Resume.pdf"
         f.save(location)
-        filename = session['username']+"Resume.doc"
+        filename = session['username']+"_Resume.pdf"
         addresume(filename, session['username'])
 
     return render_template('studentResume.html')
+
 def addresume(filename, stuname):
     adb.add_resume(filename, stuname)
 @app.route('/Student/Register', methods=['GET', 'POST'])
@@ -174,19 +175,22 @@ def employerHome():
      
     return render_template('employerhome.html')
 
+@app.route('/Employer/Search')
+def view_students():
+    table = []
+    if request.method == 'POST':
+        return render_template('employersearch.html')
+    else: 
+        table = adb.view_students()
+        return render_template('employersearch.html', table=table)
+
+
 @app.route('/Employer/EditLogo')
 def employerEditLogo():
     return 'employer'
 	
 @app.route('/Employer/EditInternships', methods=['GET', 'POST'])
 def employerEditInt():
-# table = []
-#     if request.method == 'POST':
-#         return render_template('studentsearch.html')
-#     else: 
-#         table = adb.view_jobs()
-#         print table
-#         return render_template('studentsearch.html', table=table)
     table = []
     table = adb.company_view_jobs(session['username'])
     if request.method == 'POST':
