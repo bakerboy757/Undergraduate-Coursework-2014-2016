@@ -4,6 +4,7 @@
 import sqlite3
 import crypto
 import sys
+import time
 sys.modules['crypto'] = crypto
 
 from Crypto.Cipher import AES
@@ -58,22 +59,42 @@ def create_db():
 
     return
 	
-def add_job(type, description, cid):
-	conn = sqlite3.connect(DBNAME)
-	c = conn.cursor()
-	
-	c.execute('SELECT job_type FROM {}'.format(JOBTNAME))
+def add_job(type, description, name):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
 
-	ctnum = len(c.fetchall())
+    c.execute ('SELECT cid FROM {} WHERE name = ?'.format(COMPANYTNAME), (name,))
+    cid = c.fetchone()
+    
+    c.execute('SELECT job_type FROM {}'.format(JOBTNAME))
+
+    ctnum = len(c.fetchall())
+
+
+    c.execute("INSERT INTO {} values {}".format(JOBTNAME, JOBTPARAMS),
+              (ctnum, type, description, cid[0]))
+    conn.commit()
+    conn.close()
 	
-	
-	c.execute("INSERT INTO {} values {}".format(JOBTNAME, JOBTPARAMS),
-              (ctnum, type, description, cid))
-	conn.commit()
-	conn.close()
-	
-	
-	return
+def add_resume(filename, stuname):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
+
+    c.execute ('SELECT sid FROM {} WHERE name = ?'.format(STUDENTTNAME), (stuname,))
+    sid = c.fetchone()
+
+    c.execute('SELECT resumeid FROM Resume')
+
+    ctnum = len(c.fetchall())
+
+    date = time.strftime("%x")
+    print filename
+
+    c.execute("INSERT OR REPLACE INTO Resume values (?, ?, ?, ?)", (ctnum, filename, sid[0], date))
+
+    conn.commit()
+    conn.close()
+
 def view_jobs():
 	conn = sqlite3.connect(DBNAME)
 	c = conn.cursor()
@@ -86,6 +107,33 @@ def view_jobs():
 	conn.commit()
 	conn.close()
 	return rows
+
+def company_view_jobs(name):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
+    #cid will equal session id passed in
+    c.execute ('SELECT cid FROM {} WHERE name = ?'.format(COMPANYTNAME), (name,))
+    cid = c.fetchone()
+    c.execute('SELECT jobid, name, email, job_type, job_description FROM Companies, Job WHERE Companies.cid = ? AND Job.cid = ?', (cid[0], cid[0], ))
+    
+    rows = c.fetchall()
+    
+    
+    conn.commit()
+    conn.close()
+    return rows
+
+def updateJob(name, jobid, type, description):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
+
+    c.execute ('SELECT cid FROM {} WHERE name = ?'.format(COMPANYTNAME), (name,))
+    cid = c.fetchone()
+
+    c.execute('UPDATE JOB SET job_type = ?, job_description = ? WHERE jobid = ? AND cid = ?', (type, description, jobid, cid[0]))
+
+    conn.commit()
+    conn.close()
 
 def add_company(name, password, email):
     """Creates unique id for each company, and adds company to the

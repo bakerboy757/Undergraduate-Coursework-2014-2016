@@ -89,10 +89,15 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 				<h1>Enter job id you'd like to remove</h1>
 				<br>
 				<form action="" method="post">
-				<p><label for="job_id">Job id:</label> 
-                <input id="job_id" type="text" placeholder="job_id" name="job_id"  value="{{request.form.job_id }}"></p>
+				<p><label for="job_id">Job id you want to update:</label> 
+        <input id="job_id" type="text" placeholder="job_id" name="job_id"  value="{{request.form.job_id }}"></p>
+        <p><label for="type">New Type:</label> 
+        <input id="type" type="text" placeholder="type" name="type"  value="{{request.form.type }}"></p>
+        <p><label for="description">New Description:</label> 
+        <input id="description" type="text" placeholder="description" name="description"  value="{{request.form.description }}"></p>
+        
 				
-				<input class="btn btn-default" type="submit" value="Delete">
+				<input class="btn btn-default" type="submit" value="Update">
 			  </form>
         <p style="margin-top: 0; font-size: 100%;">&nbsp;</p>
         <h1>Your currently posted jobs</h1>

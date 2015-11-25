@@ -11,7 +11,7 @@
 import sqlite3
 import database as adb
 
-from flask import Flask, render_template, request, url_for, redirect, g
+from flask import Flask, render_template, request, url_for, redirect, g, escape, session
 #from flask.ext.login import LoginManager, UserMixin, current_user, login_user, logout_user
 #from werkzeug import generate_password_hash, check_password_hash
 
@@ -20,48 +20,8 @@ DATABASE = 'SCIP.db'
 PORT = 5003
 DEBUG = True
 app = Flask(__name__)
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
-"""
-#
-##
-###login extension###
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-class UserNotFoundError(Exception):
-    pass
-
-#simple user class, will want to change this
-class User(UserMixin):
-    '''Simple User class'''
-    USERS = {
-        # username: password
-        'john': 'love mary',
-    }
-
-    def __init__(self, id):
-        if not id in self.USERS:
-            raise UserNotFoundError()
-        self.id = id
-        self.password = self.USERS[id]
-
-    @classmethod
-    def get(self_class, id):
-        '''Return user instance of id, return None if not exist'''
-        try:
-            return self_class(id)
-        except UserNotFoundError:
-            return None
-
-# Flask-Login use this to reload the user object from the user ID stored in the session
-@login_manager.user_loader
-def load_user(id):
-    return User.get(id)
-
-###
-##
-#
-"""
 
 #################################
 #############WEBPAGE#############
@@ -69,6 +29,7 @@ def load_user(id):
 
 @app.route('/')
 def main():
+    session.clear()
     app.logger.debug('Main page accessed')
     return render_template('index.html')
 
@@ -93,12 +54,25 @@ def studentLogin():
         if valid_login(request.form['username'],
                        request.form['password'],
                        True):
+            session['username'] = request.form['username']
             return log_student_in('username') #log in not implemented
         else:
             error = 'Invalid username/password'
 
     return render_template('studentlogin.html', error=error)
+@app.route('/Student/Resume', methods=['GET', 'POST'])
+def studentUpload():
+    #how to add to resume table, add filename?
+    if request.method == 'POST':
+        f = request.files['resume']
+        location = "Resumes/"+session['username']+"Resume.doc"
+        f.save(location)
+        filename = session['username']+"Resume.doc"
+        addresume(filename, session['username'])
 
+    return render_template('studentResume.html')
+def addresume(filename, stuname):
+    adb.add_resume(filename, stuname)
 @app.route('/Student/Register', methods=['GET', 'POST'])
 def studentRegister():
     error = None
@@ -112,6 +86,7 @@ def studentRegister():
                             request.form['cpassword'],
                             request.form['email'])
         if not flag: #log in not implemented
+            session['username'] = request.form['username']
             return log_employer_in('username')
         elif flag == 1:
             error = 'Invalid username/password'
@@ -153,12 +128,19 @@ def employerLogin():
     error = None
     if request.method == 'POST':
         #valid_login not implemented
-        if valid_login(request.form['username'],
-                       request.form['password'],
-                       False):
-            return log_employer_in('username') #log in not implemented
-        else:
-            error = 'Invalid username/password'
+        session['username'] = request.form['username'] 
+        session['type'] = "employer"
+        password = request.form['password']
+        #userid = adb.company_login(user_name, password)
+        # if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+        #     error = 'Invalid Credentials. Please Try again'
+        #     #return log_employer_in('username') #log in not implemented
+        # else:
+        #     return redirect('/Employer/Home')
+
+        return redirect('/Employer/Home')
+        #response.set_cookie('YourSessionCookie', userid)
+        
 
     return render_template('employerlogin.html', error=error)
         
@@ -175,6 +157,7 @@ def employerRegister():
                             request.form['cpassword'],
                             request.form['email'])
         if not flag: #log in not implemented
+            session['username'] = request.form['username']
             return log_employer_in('username')
         elif flag == 1:
             error = 'Invalid username/password'
@@ -187,6 +170,8 @@ def employerRegister():
 
 @app.route('/Employer/Home')
 def employerHome():
+    #user_id = request.cookies.get('YourSessionCookie')
+     
     return render_template('employerhome.html')
 
 @app.route('/Employer/EditLogo')
@@ -195,22 +180,41 @@ def employerEditLogo():
 	
 @app.route('/Employer/EditInternships', methods=['GET', 'POST'])
 def employerEditInt():
-	error = None
-	if request.method == 'POST':
-		flag = editJob(request.form['job_id'])
-		
-	return render_template('editInternship.html', error=error)
+# table = []
+#     if request.method == 'POST':
+#         return render_template('studentsearch.html')
+#     else: 
+#         table = adb.view_jobs()
+#         print table
+#         return render_template('studentsearch.html', table=table)
+    table = []
+    table = adb.company_view_jobs(session['username'])
+    if request.method == 'POST':
+        flag = editJob(request.form['job_id'])
 
+    return render_template('editInternship.html', table=table)
+
+@app.route('/Employer/UpdateInternships', methods=['GET', 'POST'])
+def empUpdateInt():
+    table = []
+    table = adb.company_view_jobs(session['username'])
+    if request.method == 'POST':
+        flag = updateJob(session['username'], request.form['job_id'], request.form['type'], request.form['description'])
+
+    return render_template('updateInternships.html', table=table)
+def updateJob(name, jobid, type, description):
+    adb.updateJob(name, jobid, type, description)
 @app.route('/Employer/AddInternships', methods=['GET', 'POST'])
 def employerAddInt():
-	error = None
-	if request.method == 'POST':
+    error = None
+    print session['username']
+    if request.method == 'POST':
 		#valid_login not implemented
 
 		#returns 0 if successful, 1 if username already taken
 		#2 if passwords dont match up, 3 if email already taken/invalid
 		flag = addInt(request.form['type'],
-							request.form['description'], 1)
+							request.form['description'], session['username'])
 		if not flag: #log in not implemented
 			return log_employer_in('username')
 		elif flag == 1:
@@ -219,7 +223,7 @@ def employerAddInt():
 			error = 'Invalid e-mail'
 		elif flag == 3:
 			error = 'Company already in use!'
-	return render_template('AddInternships.html', error=error)
+    return render_template('AddInternships.html', error=error)
 	
 def addInt(type, description, cid):
 	adb.add_job(type, description, cid)
@@ -263,9 +267,10 @@ def reg_employer(name, password, cpassword, email):
             return 3
     
     else:
+        adb.add_company(name, password, email)
         return False
 
-    adb.add_company(name, password, email)
+    
 
 def reg_student(name, password, cpassword, email):
 
