@@ -65,7 +65,7 @@ def studentUpload():
     #how to add to resume table, add filename?
     if request.method == 'POST':
         f = request.files['resume']
-        location = "Resumes/"+session['username']+"_Resume.pdf"
+        location = "static/resumes/"+session['username']+"_Resume.pdf"
         f.save(location)
         filename = session['username']+"_Resume.pdf"
         addresume(filename, session['username'])
