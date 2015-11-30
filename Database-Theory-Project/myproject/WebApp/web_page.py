@@ -11,7 +11,7 @@
 import sqlite3
 import database as adb
 
-from flask import Flask, render_template, request, url_for, redirect, g, escape, session
+from flask import Flask, render_template, request, url_for, redirect, g, escape, session, send_from_directory
 #from flask.ext.login import LoginManager, UserMixin, current_user, login_user, logout_user
 #from werkzeug import generate_password_hash, check_password_hash
 
@@ -48,14 +48,19 @@ def student():
 
 @app.route('/Student/Login', methods=['GET', 'POST'])
 def studentLogin():
+    try:
+        if escape(session['type']) == 'student':
+            return redirect('/Student/Home')
+    except:
+        pass
     error = None
     if request.method == 'POST':
-        #valid_login not implemented
-        if valid_login(request.form['username'],
+        if valid_login(request.form['email'],
                        request.form['password'],
                        True):
-            session['username'] = request.form['username']
-            return log_student_in('username') #log in not implemented
+            session['username'] = request.form['email']
+            session['type']  = "student"
+            return redirect('/Student/Home')
         else:
             error = 'Invalid username/password'
 
@@ -76,19 +81,25 @@ def addresume(filename, stuname):
     adb.add_resume(filename, stuname)
 @app.route('/Student/Register', methods=['GET', 'POST'])
 def studentRegister():
+    try:
+        if escape(session['type']) == 'student':
+            return redirect('/Student/Home')
+    except:
+        pass
     error = None
     if request.method == 'POST':
         #valid_login not implemented
 
         #returns 0 if successful, 1 if username already taken
         #2 if passwords dont match up, 3 if email already taken/invalid
-        flag = reg_student(request.form['username'],
+        flag = reg_student(request.form['first'] + ' ' + request.form['last'],
                             request.form['password'],
                             request.form['cpassword'],
                             request.form['email'])
         if not flag: #log in not implemented
-            session['username'] = request.form['username']
-            return log_employer_in('username')
+            session['username'] = request.form['email']
+            session['type']  = 'student'
+            return redirect('/Student/Home')
         elif flag == 1:
             error = 'Invalid username/password'
         elif flag == 2:
@@ -126,21 +137,24 @@ def employer():
 
 @app.route('/Employers/Login', methods=['GET', 'POST'])
 def employerLogin():
+    try:
+        if escape(session['type']) == 'employer':
+            return redirect('/Employer/Home')
+    except:
+        pass    
     error = None
     if request.method == 'POST':
         #valid_login not implemented
-        session['username'] = request.form['username'] 
-        session['type'] = "employer"
-        password = request.form['password']
-        #userid = adb.company_login(user_name, password)
-        # if request.form['username'] != 'admin' or request.form['password'] != 'admin':
-        #     error = 'Invalid Credentials. Please Try again'
-        #     #return log_employer_in('username') #log in not implemented
-        # else:
-        #     return redirect('/Employer/Home')
+        if valid_login(request.form['email'],
+                       request.form['password'],
+                       False):
+            session['username'] = request.form['email'] 
+            session['type'] = "employer"
 
-        return redirect('/Employer/Home')
-        #response.set_cookie('YourSessionCookie', userid)
+            return redirect('/Employer/Home')
+        
+        else:
+            error = 'Invalid username/password'        
         
 
     return render_template('employerlogin.html', error=error)
@@ -159,13 +173,14 @@ def employerRegister():
                             request.form['email'])
         if not flag: #log in not implemented
             session['username'] = request.form['username']
-            return log_employer_in('username')
+            session['type'] = 'employer'
+            return redirect('/Employer/Home')
         elif flag == 1:
             error = 'Invalid username/password'
         elif flag == 2:
             error = 'Invalid e-mail'
-        elif flag == 3:
-            error = 'Company already in use!'
+        elif flag == 4:
+            error = 'E-mail already in use!'
 
     return render_template('employerregister.html', error=error)
 
@@ -189,14 +204,33 @@ def view_students():
 def employerEditLogo():
     return 'employer'
 	
+@app.route('/Employer/InterestedStudents')
+def showInterestedStduents():
+    table = []
+    if request.method == 'POST':
+        return render_template('employersearch.html')
+    else: 
+        table = adb.view_interested_students(session['username'])
+        return render_template('interestedstudents.html', table=table)
 @app.route('/Employer/EditInternships', methods=['GET', 'POST'])
 def employerEditInt():
     table = []
+    print "ses: " + session['username']
     table = adb.company_view_jobs(session['username'])
     if request.method == 'POST':
         flag = editJob(request.form['job_id'])
 
     return render_template('editInternship.html', table=table)
+@app.route('/Student/Search/<jobid>')
+def showInterest(jobid):
+    adb.addInterest(jobid, session['username'])
+    return ('Interst shown in jobid: ' + jobid)
+@app.route('/static/resumes/<path:filename>')
+def addView(filename):
+    print "HELLO"
+    adb.addViewEmployer(filename, session['username'])
+    return send_from_directory('static/resumes/', filename)
+
 
 @app.route('/Employer/UpdateInternships', methods=['GET', 'POST'])
 def empUpdateInt():
@@ -248,8 +282,13 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-def valid_login(username, password, Student = True):
-    return 1
+def valid_login(email, password, student = True):
+    if student and adb.student_login(email, password):
+        return True
+    if not student and adb.company_login(email, password):
+        return True
+
+    return False
 
 def log_employer_in(username):
     return redirect('/Employer/Home')
@@ -288,9 +327,12 @@ def reg_student(name, password, cpassword, email):
             return 4
     
     else:
+        adb.add_student(name, password, email)
+
+
         return False
 
-    adb.add_student(name, password, email)
+    
     
 if __name__ == "__main__":
     app.logger.setLevel(0)

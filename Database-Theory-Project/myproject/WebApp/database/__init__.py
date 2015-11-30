@@ -59,11 +59,11 @@ def create_db():
 
     return
 	
-def add_job(type, description, name):
+def add_job(type, description, email):
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
 
-    c.execute ('SELECT cid FROM {} WHERE name = ?'.format(COMPANYTNAME), (name,))
+    c.execute ('SELECT cid FROM {} WHERE email = ?'.format(COMPANYTNAME), (email,))
     cid = c.fetchone()
     
     c.execute('SELECT job_type FROM {}'.format(JOBTNAME))
@@ -108,11 +108,38 @@ def view_students():
     conn.commit()
     conn.close()
     return rows
+def view_interested_students(email):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
+    c.execute('SELECT cid FROM Companies WHERE email = ?', (email,))
+    cid = c.fetchone()
+
+
+    c.execute('SELECT Students.name, Students.fsuid, student_job_views.jid, Resume.filename FROM Students, student_job_views, Job, Companies, Resume WHERE Students.fsuid = student_job_views.sid AND student_job_views.jid = Job.jobid AND Resume.fsuid = Students.fsuid AND Job.cid = Companies.cid AND Companies.email = ?', (email,))
+    
+    rows = c.fetchall()
+    print rows
+    
+    conn.commit()
+    conn.close()
+    return rows
+def addInterest(jobid, email):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
+
+    c.execute('SELECT sviewid FROM student_job_views')
+
+    ctnum = len(c.fetchall())
+    c.execute('INSERT INTO student_job_views VALUES (?, ?, ?, ?)', (1, email, jobid, ctnum))
+
+    conn.commit()
+    conn.close()
+
 def view_jobs():
 	conn = sqlite3.connect(DBNAME)
 	c = conn.cursor()
 
-	c.execute('SELECT name, email, job_type, job_description FROM Companies, Job WHERE Companies.cid = Job.cid')
+	c.execute('SELECT name, email, job_type, job_description, jobid FROM Companies, Job WHERE Companies.cid = Job.cid')
 	
 	rows = c.fetchall()
 	print rows
@@ -121,11 +148,11 @@ def view_jobs():
 	conn.close()
 	return rows
 
-def company_view_jobs(name):
+def company_view_jobs(email):
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
     #cid will equal session id passed in
-    c.execute ('SELECT cid FROM {} WHERE name = ?'.format(COMPANYTNAME), (name,))
+    c.execute ('SELECT cid FROM Companies WHERE email = ?', (email,))
     cid = c.fetchone()
     c.execute('SELECT jobid, name, email, job_type, job_description FROM Companies, Job WHERE Companies.cid = ? AND Job.cid = ?', (cid[0], cid[0], ))
     
@@ -135,12 +162,28 @@ def company_view_jobs(name):
     conn.commit()
     conn.close()
     return rows
-
-def updateJob(name, jobid, type, description):
+def addViewEmployer(filename, email):
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
 
-    c.execute ('SELECT cid FROM {} WHERE name = ?'.format(COMPANYTNAME), (name,))
+    c.execute('SELECT cid FROM Companies Where email = ?', (email,))
+    cid = c.fetchone()
+
+    c.execute('SELECT resumeid from Resume where filename = ?', (filename,))
+    rid = c.fetchone()
+
+    c.execute('SELECT cviewid FROM comp_res_views')
+
+    ctnum = len(c.fetchall())
+    c.execute('INSERT INTO comp_res_views VALUES (?, ?, ?, ?)', (ctnum, 1, cid[0], rid[0]))
+
+    conn.commit()
+    conn.close()
+def updateJob(email, jobid, type, description):
+    conn = sqlite3.connect(DBNAME)
+    c = conn.cursor()
+
+    c.execute ('SELECT cid FROM Companies WHERE email = ?', (email,))
     cid = c.fetchone()
 
     c.execute('UPDATE JOB SET job_type = ?, job_description = ? WHERE jobid = ? AND cid = ?', (type, description, jobid, cid[0]))
@@ -172,17 +215,18 @@ def add_company(name, password, email):
 
     return ctnum
 
-def company_login(name, password):
+def company_login(email, password):
     #check company's login information
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
+    cipher = AES.new(SECRET)
 
-    c.execute('SELECT password FROM {} WHERE name = ?'.format(COMPANYTNAME),(name,))
+
+    c.execute('SELECT password FROM {} WHERE email = ?'.format(COMPANYTNAME),(email,))
     data = c.fetchone()
     if data is None:
         return False
     else:
-        cipher = AES.new(SECRET)
         encoded = encodeAES(cipher, password)
         if data[0] == encoded:
             return True
@@ -199,41 +243,36 @@ def editJob(job_id):
 	conn.close()
 
 
-def add_student(name, password):
+def add_student(name, password, email):
     """creates unique id for each student, and adds student to the
        student table"""
 
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
-
-    #get length    
-    c.execute('SELECT name FROM {}'.format(STUDENTTNAME))
-
-    ctnum = len(c.fetchall())
+  
 
     #encrypt/encode text
     cipher = AES.new(SECRET)
     encoded = encodeAES(cipher, password)
 
-    c.execute("INSERT INTO {} values {}".format(STUDENTNAME, STUDENTPARAMS),
-              (name, encoded, ctnum))
+    c.execute("INSERT INTO {} values {}".format(STUDENTTNAME, STUDENTPARAMS),
+              (name, encoded, email))
     
     conn.commit()
     conn.close()
 
-    return ctnum
 
-def student_login(name, password):
+def student_login(email, password):
     #check company's login information
     conn = sqlite3.connect(DBNAME)
     c = conn.cursor()
+    cipher = AES.new(SECRET)
 
-    c.execute('SELECT password FROM {} WHERE name = ?'.format(STUDENTTNAME),(name,))
+    c.execute('SELECT password FROM Students WHERE fsuid = ?',(email,))
     data = c.fetchone()
     if data is None:
         return False
     else:
-        cipher = AES.new(SECRET)
         encoded = encodeAES(cipher, password)
         if data[0] == encoded:
             return True
