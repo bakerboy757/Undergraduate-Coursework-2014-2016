@@ -3,6 +3,7 @@
 */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 /************
 *    BUFFERSIZE for mac length of single line
 *    MAXSIZE for how many lines in a file
@@ -78,7 +79,7 @@ int getLabelAddr(const char *);
 int parseData(const char *, int);
 int parseText(const char *, int); 
 
-int main(int argc, char *argv[]){
+int main(){
     char buffer[BUFFERSIZE];
     int line = 0;
     int flag = 0;//flag to tell if what section we are in
@@ -271,7 +272,6 @@ void itrInstr(){
 void r_format(const int loc){
     //r format consists of three instructions: ADD NOR and SLL
     int hex = 0, funct = 0, rd = 0, rs = 0, rt = 0, shamt = 0;
-    Format f1;
     rt = getReg(instructionSet[loc].argv3);
     rs = getReg(instructionSet[loc].argv2);
     //assign opcodes
@@ -363,7 +363,7 @@ int getLabelAddr(const char * label){
     for(i = 0; i <= lCurSize; i++)
         if(!strcmp(labelSet[i].name, label))
             return labelSet[i].addr;
-       
+    return -1;       
 }
 void lui_inst(const int loc){
     int op = 15, rt, imm, hex, labelAddr;
