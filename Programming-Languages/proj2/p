@@ -1,0 +1,6 @@
+program xyz is 
+begin
+  var b;
+  b = 400;
+  print b
+end
