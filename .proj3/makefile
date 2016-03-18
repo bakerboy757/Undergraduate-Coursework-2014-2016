@@ -1,0 +1,4 @@
+trans: trans.c
+	gcc -std=c99 -D_XOPEN_SOURCE=700 -o trans trans.c -lrt
+clean:
+	rm -f *.o *.x core.* trans
