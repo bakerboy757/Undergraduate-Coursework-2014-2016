@@ -23,13 +23,29 @@ while(<$fh>){
   push @allWords, $_;
 }
 close $fh;
+if (grep {$_ eq $begin} @allWords){
+  ;
+}
+else{
+  print "$begin not in list\n";
+  exit;
+}
+if (grep {$_ eq $end} @allWords){
+  ;
+}
+else{
+  print "$end not in list\n";
+  exit;
+}
 my @sameLength = grep {length $_ == length $begin} @allWords;
 my @queue = ([$begin]);
+my $flag = 0;
 while(@queue){#while queue is not empty
   #pop off @queue and store in @ladder
   my @ladder = @{shift @queue};
   if ($ladder[-1] eq $end){
     print join(" --> ", @ladder), "\n";
+    $flag = 1;
     last;
   }
   #store last word of ladder in in $last
@@ -60,4 +76,4 @@ while(@queue){#while queue is not empty
     push @queue, [@copy];  
   }
 }
-
+print "no word ladder found\n" if $flag == 0;
