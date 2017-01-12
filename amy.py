@@ -4,11 +4,11 @@ import re
 import sqlite3 as lite
 import sys
 
-#con = lite.connect('amy_stats.db')
-#with con:
-#    print "Creating table if not exists"
-#    cur = con.cursor()
-#    cur.execute("CREATE TABLE IF NOT EXISTS meta (id INTEGER PRIMARY KEY, sub TEXT, date TEXT, user TEXT, product_id TEXT);")
+con = lite.connect('amy_stats.db')
+with con:
+    print "Creating table if not exists"
+    cur = con.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS meta (id INTEGER PRIMARY KEY, sub TEXT, date TEXT, user TEXT, product_id TEXT);")
 
 bot = praw.Reddit(user_agent='Amy v0.1',
                 client_id='ZPTLrdpIbtlGoA',
@@ -36,11 +36,10 @@ for comment in comments:
         dp = re.search('http[s]://www.amazon.com/.*/dp/(.*)/[^).\n ]*', link.group(0))
         if dp is None:
             continue
-        #with con:
-    #        print "adding comment data"
-    #        cur = con.cursor()
-    #        cur.execute("INSERT INTO meta VALUES(?, ?, ?, ?)", (comment.subreddit, time.strftime("%c"), author, dp.group(1)))
-    #        con.commit()
-    #        print "successfully inserted"
+        with con:
+            print "adding comment data"
+            cur = con.cursor()
+            cur.execute("INSERT INTO meta(sub, date, user, pid) VALUES (?, ?, ?, ?)", (comment.subreddit, time.strftime("%c"), author, dp.group(1)))
+            print "successfully inserted"
         message = "For less messy amazon links you can extract the part after \"/dp/\" in \n\n {0}\n\nand make it:\n\nhttps://amzn.com/{1}\n\n Or via [smile](http://smile.amazon.com/gp/chpf/about/ref=smi_aas_redirect?ie=UTF8&*Version*=1&*entries*=0) link:\n\n https://smile.amazon.com/dp/{2}\n\n**BEEP BOP**\n\nPlz send any recommendations via PM".format(link.group(0), dp.group(1), dp.group(1))
         comment.reply(message)
