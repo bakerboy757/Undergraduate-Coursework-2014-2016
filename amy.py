@@ -25,10 +25,11 @@ comments = subreddit.stream.comments()
 for comment in comments:
     text = comment.body
     author = comment.author
-    if comment.subreddit in data.banned_subs:
-        continue
-    if re.search(bad_amazon_expression, text) is None and re.search(amazon_expression, text) is not None and author != 'AMY_bot' and author != 'le_velocirapetor':
-        print "\n\nFOUND: {0}".format(author)
+    title = comment.submission.title
+    if re.search(bad_amazon_expression, text) is None and \
+       re.search(amazon_expression, text) is not None and \
+       author is not in data.avoid_authors and \
+       comment.subreddit is not in data.banned_subs:
         link = re.search(amazon_expression, text)
         if link is None:
             continue
@@ -42,3 +43,4 @@ for comment in comments:
             print "successfully inserted"
         message = "For less messy amazon links you can extract the part after \"/dp/\" in \n\n {0}\n\nand make it:\n\nhttps://amzn.com/{1}\n\n Or via [smile](http://smile.amazon.com/gp/chpf/about/ref=smi_aas_redirect?ie=UTF8&*Version*=1&*entries*=0) link:\n\n https://smile.amazon.com/dp/{2}\n\n**BEEP BOP**\n\nPlz send any recommendations via PM".format(link.group(0), dp.group(1), dp.group(1))
         comment.reply(message)
+        print "\n\nAuthor: {0}\nPost: {1}\nSubreddit: {2}\nLink: {3}\nDate/Time: {4}\n\n".format(author, title, comment.subreddit, dp.group(1), time.strftime("%c"))
