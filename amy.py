@@ -18,7 +18,7 @@ bot = praw.Reddit(user_agent=data.user_agent,
                 password=data.password)
 
 amazon_expression = 'http[s]://www.amazon.com/.*/dp[^).\n ]*'
-bad_amazon_expression = '\]\(http[s]://www.amazon.com/.*/dp[^).\n ]*'
+bad_amazon_expression = '\]\(http[s]://www.amazon.com/.*'
 subreddit = bot.subreddit('all')
 comments = subreddit.stream.comments()
 
