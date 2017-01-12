@@ -3,6 +3,7 @@ import time
 import re
 import sqlite3 as lite
 import sys
+import data
 
 con = lite.connect('amy_stats.db')
 with con:
@@ -10,11 +11,11 @@ with con:
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS meta (id INTEGER PRIMARY KEY, sub TEXT, date TEXT, user TEXT, product_id TEXT);")
 
-bot = praw.Reddit(user_agent='Amy v0.1',
-                client_id='ZPTLrdpIbtlGoA',
-                client_secret='JbjkkWH0YzlgGwXyVDxAs2SAT7Y',
-                username='AMY_bot',
-                password='encryptedpasswordbot')
+bot = praw.Reddit(user_agent=data.user_agent,
+                client_id=data.client_id,
+                client_secret=data.client_secret,
+                username=data.username,
+                password=data.password)
 
 amazon_expression = 'http[s]://www.amazon.com/.*/dp[^).\n ]*'
 bad_amazon_expression = '\]\(http[s]://www.amazon.com/.*/dp[^).\n ]*'
@@ -24,11 +25,9 @@ comments = subreddit.stream.comments()
 for comment in comments:
     text = comment.body
     author = comment.author
-    if re.search(bad_amazon_expression, text) is not None:
+    if comment.subreddit in data.banned_subs:
         continue
-    if comment.subreddit == 'SuggestALaptop':
-        continue
-    if re.search(amazon_expression, text) is not None and author != 'AMY_bot' and author != 'le_velocirapetor':
+    if re.search(bad_amazon_expression, text) is None and re.search(amazon_expression, text) is not None and author != 'AMY_bot' and author != 'le_velocirapetor':
         print "\n\nFOUND: {0}".format(author)
         link = re.search(amazon_expression, text)
         if link is None:
